@@ -17,7 +17,6 @@ var actions = {
     req.on('data', function(data){
       url += data;
     }).on('end', function() {
-
       if(url[0] === '{'){
         url = JSON.parse(url).url;
         console.log(url);
@@ -25,7 +24,12 @@ var actions = {
         url = url.slice(url.indexOf('=')+1);
       }
       filename = path.join(archive.paths.archivedSites, '/', url);
-      fileExists(req, res, filename, getContent, true);
+      fileExists(req, res, filename, function(req, res, filename){
+        var url = filename.split('/');
+        url = url[url.length-1];
+        res.writeHead(302, {'Location': '/' + url});
+        res.end();
+      }, true);
     });
   }
 };
@@ -34,6 +38,9 @@ var saveUrl = function(req, res, filename) {
   var url = filename.split('/');
   url = url[url.length - 1];
   fs.appendFile(archive.paths.list, url+'\n', function(err){
+    fs.readFile(archive.paths.list, 'utf-8', function(err,data){
+      console.log(data);
+    });
     if(err) {
       console.log('Failed to append');
     }
@@ -42,6 +49,7 @@ var saveUrl = function(req, res, filename) {
     res.end();
   });
 };
+
 var handleGET = function(req, res){
   var pathname = url.parse(req.url).pathname;
   pathname = pathname === '/' ? pathname + 'index.html' : pathname;
@@ -51,7 +59,7 @@ var handleGET = function(req, res){
     var filename = path.join(archive.paths.siteAssets, pathname);
     fileExists(req, res, filename, getContent);
   }else if(pathInfo.ext === '.ico'){
-    res.writeHead(200, {'Content-Type': 'image/x-icon'});
+    // res.writeHead(200, {'Content-Type': 'image/x-icon'});
     res.end();
   }else{
     var filename = path.join(archive.paths.archivedSites, pathname);
@@ -66,7 +74,7 @@ var fileExists = function(req, res, filename, callback, postFlag){
       // Call error return function
       error(req, res, "file not found");
     }else if(!err){
-      console.log('callback to getContent');
+      console.log('callback to getContent, ', filename);
       // pass filename to callback
       callback(req, res, filename);
     }
