@@ -5,13 +5,13 @@ var fs = require('fs');
 
 
 module.exports = function(){
-  var job = new CronJob('* * * * *', function(){
+  var job = new CronJob('59 * * * * *', function(){
     archive.readListOfUrls(function(urls){
+      // var urlsList = [];
       _.each(urls, function(url){
-        fs.appendFile(archive.paths.archivedSites + '/downloading.txt', url);
         archive.isUrlArchived(url, function(is){
           if(!is){
-            archive.downloadUrls(url);
+            archive.downloadUrls([url]);
           }
         });
       });
@@ -20,8 +20,7 @@ module.exports = function(){
         }
       })
     });
-  }, null, true, 'America/Los_Angeles');
-  job.start();
+  }, null, true, 'America/Los_Angeles', null, true);
   console.log('starting cron job');
 }
 

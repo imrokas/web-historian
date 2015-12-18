@@ -1,3 +1,4 @@
+var http = require('http');
 var fs = require('fs');
 var path = require('path');
 var request = require('request');
@@ -62,9 +63,11 @@ exports.isUrlArchived = function(url, callback){
 
 exports.downloadUrls = function(urls){
   _.each(urls, function(url){
-    request(url, function(err, res, body){
-      fs.writeFile(path.join(exports.paths.archivedSites, '/',url), body);
-    })
-  })
+    if(url !== '') {
+      request({uri: 'http://'+url}, function(err, res, body){
+          fs.writeFile(path.join(exports.paths.archivedSites, '/',url), body);
+      });
+    }
+  });
 
 };
